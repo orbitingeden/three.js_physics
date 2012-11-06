@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Three.js Physics</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<META NAME="AUTHOR" CONTENT="evan neumann">
+	<META HTTP-EQUIV="CONTENT-LANGUAGE" CONTENT="en-US">
+	<META NAME="COPYRIGHT" CONTENT="&copy; 2012 evan neumann">
+	<META NAME="DESCRIPTION" CONTENT="A basic implementation of Three.js physics 
+									creating a few balls orbiting a center ball.">
+	<META HTTP-EQUIV="EXPIRES" CONTENT="Wed, 16 May 2012 11:12:01 GMT">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+	<script src="../src/Three.js"></script>
+	<script src="../src/Detector.js"></script>
+	<script src="../src/Stats.js"></script>
+	<script src="../src/physics/Gravity.js"></script>
+	<script src="../src/physics/Move.js"></script>
+		
+</head>
+
+<body><script>
+		var container, stats;
+		var camera, scene, renderer;
+		var	width  = window.innerWidth,	height = window.innerHeight;
+		var light, lapse;
+		var earth, xanadu, moon;
+		
+		window.onload = function() {
+
+			if ( !Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				return;
+
+			}
+
+			init();
+			animate();
+
+		}
+		
+		init = function() {
+
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+
+			scene = new THREE.Scene();
+
+			renderer = new THREE.WebGLRenderer( { clearAlpha: 1, 
+								clearColor: 0x000000, antialias: true } );
+			renderer.setSize( width, height );
+			renderer.sortObjects = false;
+			renderer.autoClear = false;
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
+			container.appendChild( renderer.domElement );
+
+			//light
+			light 			= new THREE.DirectionalLight( 0xFFFFFF );
+			light.position 	= new THREE.Vector3(0,50,100);
+			scene.add( light );
+
+			//camera
+			var perpective 	= window.innerWidth / window.innerHeight;
+			camera 			= new THREE.PerspectiveCamera( 40, perpective, 1, 9007199254740992 );
+			camera.position = new THREE.Vector3(0,0,100);
+			scene.add( camera );
+			
+			// center
+			var geometry 	= new THREE.SphereGeometry( 10, 32, 32 );
+			var material 	= new THREE.MeshLambertMaterial( { color: 0xFFFFFF, map: THREE.ImageUtils.loadTexture( "textures/earth-small.jpg" ) } );
+			earth 			= new THREE.Mesh( geometry, material );
+			earth.mass 		= 29999999999999999999999;
+			earth.name 		= 'earth';
+			scene.add( earth );
+
+			// orbiter1
+			geometry 		= new THREE.SphereGeometry( 2, 16, 16 );
+			material 		= new THREE.MeshPhongMaterial( { color: 0xDAA520, ambient: 0xDAA520, reflectivity:1 } );
+			xanadu 			= new THREE.Mesh( geometry, material );
+			xanadu.name 	= 'xanadu';
+			xanadu.position	= new THREE.Vector3(0,12,0);
+			xanadu.momentum	= new THREE.Vector3(7,6,11);
+			scene.add( xanadu );
+			
+			// orbiter2
+			geometry 		= new THREE.SphereGeometry( 5, 32, 32 );
+			material 		= new THREE.MeshPhongMaterial( { color: 0xFFFFFF, map: THREE.ImageUtils.loadTexture( "textures/moon_small.jpg" ) } );
+			moon 			= new THREE.Mesh( geometry, material );
+			moon.name 		= 'moon';
+			moon.position 	= new THREE.Vector3(0,0,30);
+			moon.momentum	= new THREE.Vector3(6,5,-2);
+			scene.add( moon );
+
+			stats = new Stats();
+			stats.getDomElement().style.position = 'absolute';
+			stats.getDomElement().style.top = '0px';
+			container.appendChild( stats.getDomElement() );
+
+			window.addEventListener( 'resize', onWindowResize, false );
+
+		}
+		
+		function onWindowResize( event ) {
+
+			width = window.innerWidth;
+			height = window.innerHeight;
+
+			renderer.setSize( width, height );
+
+			camera.aspect = width / height;
+			camera.updateProjectionMatrix();
+
+			camera.radius = ( width + height ) / 4;
+
+		}
+		
+		function animate() {
+			
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+			//set the lapse rate for this frame
+			lapse = stats.getMs() / 1000;
+				
+			//calculate positions
+			var move 			= new THREE.Orbit();
+			move.lapse 			= stats.getMs() / 1000;
+			move.coordinate( earth, xanadu );
+			var moveSecond 		= new THREE.Orbit();
+			moveSecond.lapse 	= stats.getMs() / 1000;
+			moveSecond.coordinate( earth, moon );
+			
+			//spin the earth and moon
+			earth.rotation.y 	+= .02;
+			moon.rotation.y 	+= .01;
+			
+					
+		};
+		
+		function render() { 
+			
+			renderer.clear();
+			renderer.render( scene, camera );
+
+		};
+
+
+	//Google Analytics
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-33075414-1']);
+	  _gaq.push(['_trackPageview']);	
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>	
+</body>
+</html>

@@ -1,7 +1,7 @@
 three.js_physics
 ================
 
-<a href="http://orbitingeden.com/toyOrbit.html">EXAMPLE HERE</a>
+<a href="http://orbitingeden.com/three.js_physics/examples/webgl_orbit.html">EXAMPLE HERE</a>
 
 Physics engine for Three.js, the popular JavaScript WebGL framework
 
